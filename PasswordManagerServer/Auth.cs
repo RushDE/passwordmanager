@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
 namespace PasswordManagerServer
 {
-    public class Crypto
+    public class Auth
     {
         public static string CreateToken(IConfiguration configuration, string uuid)
         {
@@ -30,7 +29,13 @@ namespace PasswordManagerServer
                 signingCredentials: credentials
             );
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            return jwt;
+            return $"bearer {jwt}";
+        }
+
+        public static string GetUuid(IHttpContextAccessor httpContextAccessor)
+        {
+            var uuid = httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            return uuid;
         }
     }
 }
