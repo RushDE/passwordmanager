@@ -1,5 +1,5 @@
 # Testing
-Zuerst `dotnet ef database update` im Projektordner ausführen, um die Datenbank zu erstellen.
+Zuerst den Ordner `databases`erstellen dann `dotnet ef database update` im Projektordner ausführen, um die Datenbank zu erstellen.
 Dann, das Projekt einfach starten, dann wird der Swagger-UI gelauncht, zum API testen.
 
 # Database Scheme
