@@ -10,14 +10,16 @@ namespace PasswordManagerServer.Controllers
     public class AuthController : ControllerBase
     {
         private readonly DataContext _dataContext;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(DataContext dataContext)
+        public AuthController(DataContext dataContext, IConfiguration configuration)
         {
             _dataContext = dataContext;
+            _configuration = configuration;
         }
 
-        [HttpPut("Register")]
-        public async Task<ActionResult<List<User>>> Register(UserDto userDto)
+        [HttpPost("Register")]
+        public async Task<ActionResult> Register(UserDto userDto)
         {
             if (
                 string.IsNullOrWhiteSpace(userDto.Username) ||
@@ -26,7 +28,7 @@ namespace PasswordManagerServer.Controllers
             {
                 return BadRequest("Empty usernname or password.");
             }
-            if (_dataContext.Users.Any(username => username.Username == userDto.Username))
+            if (_dataContext.Users.Any(user => user.Username == userDto.Username))
             {
                 return BadRequest("Username already exists.");
             }
@@ -40,6 +42,28 @@ namespace PasswordManagerServer.Controllers
             });
             await _dataContext.SaveChangesAsync();
             return Ok("Registered user.");
+        }
+
+        [HttpPost("Login")]
+        public ActionResult Login(UserDto userDto)
+        {
+            if (!_dataContext.Users.Any(username => username.Username == userDto.Username))
+            {
+                return BadRequest("User doesen't exist.");
+            }
+            User user = _dataContext.Users.First(user => user.Username == userDto.Username);
+            if (!BCrypt.Net.BCrypt.Verify(userDto.PrehashedPassword, user.PasswordHash))
+                {
+                return BadRequest("Invalid password.");
+            }
+            string token = Crypto.CreateToken(_configuration, user.Uuid);
+            return Ok(token);
+        }
+
+        [HttpPatch("ChangePassword")]
+        public async Task<ActionResult> ChangePassword()
+        {
+            throw new NotImplementedException();
         }
     }
 }
