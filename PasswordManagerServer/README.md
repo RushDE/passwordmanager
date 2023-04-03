@@ -6,9 +6,9 @@ Dann, das Projekt einfach starten, dann wird der Swagger-UI gelauncht, zum API t
 ## `Users`
 (Der `PasswordHash` sollte auch bereits Clientseitig einmal mit Bcrypt gehasht werden. (Auf Zero-Knoweledge basis und so...))
 | Uuid | Username | PasswordHash |
-| - |
+| - | - | - |
 
 ## `PasswordEntries`
 (Alles bis auf die `UserUuid` wird natürlich Clientseitig verschlüsselt.)
 | UserUuid | Name | Link | Username | Password |
-| - |
+| - | - | - | - | - |
