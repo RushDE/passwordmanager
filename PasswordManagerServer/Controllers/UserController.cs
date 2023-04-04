@@ -9,6 +9,7 @@ namespace PasswordManagerServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly DataContext _dataContext;
@@ -26,7 +27,7 @@ namespace PasswordManagerServer.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        [HttpPost("Register")]
+        [HttpPost("Register"), AllowAnonymous]
         public async Task<ActionResult<MessageDto>> Register(UserDto userDto)
         {
             if (
@@ -52,7 +53,7 @@ namespace PasswordManagerServer.Controllers
             return Ok(new MessageDto("Registered user."));
         }
 
-        [HttpPost("Login")]
+        [HttpPost("Login"), AllowAnonymous]
         public ActionResult<JwtBearerDto> Login(UserDto userDto)
         {
             if (!_dataContext.Users.Any(username => username.Username == userDto.Username))
@@ -68,7 +69,7 @@ namespace PasswordManagerServer.Controllers
             return Ok(new JwtBearerDto("Successfull login.") { Token = token });
         }
 
-        [HttpPatch("ChangePassword"), Authorize]
+        [HttpPatch("ChangePassword")]
         public async Task<ActionResult<MessageDto>> ChangePassword(ChangePasswordDto changePasswordDto)
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
@@ -86,7 +87,7 @@ namespace PasswordManagerServer.Controllers
             return Ok(new MessageDto("Changed password."));
         }
 
-        [HttpDelete("DeleteUser"), Authorize]
+        [HttpDelete("DeleteUser")]
         public async Task<ActionResult<string>> DeleteUser(DeleteUserDto deleteUserDto)
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);

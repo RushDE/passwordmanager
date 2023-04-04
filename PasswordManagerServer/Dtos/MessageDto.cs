@@ -1,4 +1,6 @@
-﻿namespace PasswordManagerServer.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PasswordManagerServer.Dtos
 {
     public class MessageDto
     {
@@ -7,6 +9,7 @@
             Message = message;
         }
 
+        [Required]
         public string Message { get; set; } = string.Empty;
     }
 }

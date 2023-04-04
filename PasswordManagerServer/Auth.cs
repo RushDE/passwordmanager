@@ -23,9 +23,10 @@ namespace PasswordManagerServer
                 key,
                 SecurityAlgorithms.HmacSha512Signature
             );
+            int expirationInHours = configuration.GetValue<int>("Jwt:ExpirationInHours");
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddHours(6),
+                expires: DateTime.Now.AddHours(expirationInHours),
                 signingCredentials: credentials
             );
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);

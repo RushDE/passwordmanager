@@ -10,7 +10,7 @@ using PasswordManagerServer.Data;
 namespace PasswordManagerServer.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230403123838_Initial")]
+    [Migration("20230404083246_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,15 +25,12 @@ namespace PasswordManagerServer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Link")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserUuid")
@@ -41,7 +38,6 @@ namespace PasswordManagerServer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Uuid");

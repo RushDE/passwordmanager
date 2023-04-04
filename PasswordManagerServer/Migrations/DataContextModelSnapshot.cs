@@ -22,15 +22,12 @@ namespace PasswordManagerServer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Link")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserUuid")
@@ -38,7 +35,6 @@ namespace PasswordManagerServer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Username")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Uuid");
