@@ -194,7 +194,7 @@ namespace PasswordManagerServer.Controllers
         [Produces("application/json")]
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<string>> DeleteUser(DeleteUserDto deleteUserDto)
+        public async Task<ActionResult<MessageDto>> DeleteUser(DeleteUserDto deleteUserDto)
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
             if (!_dataContext.Users.Any(user => user.Uuid == requestUuid))
