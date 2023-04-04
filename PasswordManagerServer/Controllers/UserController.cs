@@ -7,6 +7,9 @@ using PasswordManagerServer.Models;
 
 namespace PasswordManagerServer.Controllers
 {
+    /// <summary>
+    /// Endpoint to handle everything with the user account.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
@@ -16,6 +19,12 @@ namespace PasswordManagerServer.Controllers
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// Injects everything.
+        /// </summary>
+        /// <param name="dataContext"></param>
+        /// <param name="configuration"></param>
+        /// <param name="httpContextAccessor"></param>
         public UserController(
             DataContext dataContext,
             IConfiguration configuration,
@@ -27,7 +36,31 @@ namespace PasswordManagerServer.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// Creates a new account for a user.
+        /// </summary>
+        /// <param userDto="The name has to be unique."></param>
+        /// <returns MessageDto="Explaines the success or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///         "username": "Max",
+        ///         "prehashedPassword": "hunter2" // Should be already hashed once with bcrypt.
+        ///     }
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Registered user."
+        ///     }
+        /// </remarks>
+        /// <response code="200">Created the user, and returns a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpPost("Register"), AllowAnonymous]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> Register(UserDto userDto)
         {
             if (
@@ -53,7 +86,32 @@ namespace PasswordManagerServer.Controllers
             return Ok(new MessageDto("Registered user."));
         }
 
+        /// <summary>
+        /// Returns a bearer token, if the credentials are valid.
+        /// </summary>
+        /// <param userDto="The account has to be already registered."></param>
+        /// <returns JwtBearerDto="The token if the login is successfull, and a message that explaines the succes or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///         "username": "Max",
+        ///         "prehashedPassword": "hunter2" // Should be already hashed once with bcrypt.
+        ///     }
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Successfull login.",
+        ///         "token": "bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImM1M2JmNDRmLTY0ZTItNGQ3MS1hZWE5LTQzZDFlOWYxNDcxNSIsImV4cCI6MTY4MDYyMjM1MX0.AXe5fa_AgboS3740xAhJ5imY__7VLJKjQkJ5oxwDyrkSt904EmbBvdBudzcyeqbEMvHH7tgmB8gwnks47h6ztA"
+        ///     }
+        /// </remarks>
+        /// <response code="200">Returns the token and a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpPost("Login"), AllowAnonymous]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(JwtBearerDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JwtBearerDto), StatusCodes.Status400BadRequest)]
         public ActionResult<JwtBearerDto> Login(UserDto userDto)
         {
             if (!_dataContext.Users.Any(username => username.Username == userDto.Username))
@@ -69,7 +127,31 @@ namespace PasswordManagerServer.Controllers
             return Ok(new JwtBearerDto("Successfull login.") { Token = token });
         }
 
+        /// <summary>
+        /// Changes the password of a user.
+        /// </summary>
+        /// <param changePasswordDto="The old and new prehashed password.."></param>
+        /// <returns MessageDto="Explaines the success or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///         "prehashedOldPassword": "hunter2",  // Should be already hashed once with bcrypt.
+        ///         "prehashedNewPassword": "password"  // Should be already hashed once with bcrypt.
+        ///     }
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Changed password."
+        ///     }
+        /// </remarks>
+        /// <response code="200">Returns a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpPatch("ChangePassword")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> ChangePassword(ChangePasswordDto changePasswordDto)
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
@@ -87,7 +169,31 @@ namespace PasswordManagerServer.Controllers
             return Ok(new MessageDto("Changed password."));
         }
 
+
+        /// <summary>
+        /// Deletes a user and all their passwords.
+        /// </summary>
+        /// <param deleteUserDto="Contains the prehashed password, for extry security."></param>
+        /// <returns MessageDto="Explaines the success or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///         "prehashedPassword": "hunter2" // Should be already hashed once with bcrypt.
+        ///     }
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Deleted user and all passwords."
+        ///     }
+        /// </remarks>
+        /// <response code="200">Returns a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpDelete("DeleteUser")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<string>> DeleteUser(DeleteUserDto deleteUserDto)
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);

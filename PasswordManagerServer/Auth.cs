@@ -5,8 +5,18 @@ using System.Text;
 
 namespace PasswordManagerServer
 {
+    /// <summary>
+    /// Includes all the helper methods that do something with authentification.
+    /// </summary>
     public class Auth
     {
+        /// <summary>
+        /// Creates a jwt bearer token from the user uuid.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="uuid"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static string CreateToken(IConfiguration configuration, string uuid)
         {
             var claims = new List<Claim>
@@ -33,6 +43,11 @@ namespace PasswordManagerServer
             return $"bearer {jwt}";
         }
 
+        /// <summary>
+        /// Gets the resquest uuid from the httpContextAccessor.
+        /// </summary>
+        /// <param name="httpContextAccessor"></param>
+        /// <returns></returns>
         public static string GetUuid(IHttpContextAccessor httpContextAccessor)
         {
             var uuid = httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;

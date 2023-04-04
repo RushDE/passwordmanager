@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PasswordManagerServer.Data;
@@ -8,6 +7,9 @@ using PasswordManagerServer.Models;
 
 namespace PasswordManagerServer.Controllers
 {
+    /// <summary>
+    /// Endpoint to handle everything with the passwords.
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
@@ -16,6 +18,11 @@ namespace PasswordManagerServer.Controllers
         private readonly DataContext _dataContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// Injects everything.
+        /// </summary>
+        /// <param name="dataContext"></param>
+        /// <param name="httpContextAccessor"></param>
         public VaultController(
             DataContext dataContext,
             IHttpContextAccessor httpContextAccessor
@@ -25,7 +32,33 @@ namespace PasswordManagerServer.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// Creates a new password for a user, all information, ahould be encrypted client side.
+        /// </summary>
+        /// <param passwordDto="All the information for the new password."></param>
+        /// <returns MessageDto="Explaines the success or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///         "encryptedName": "Netflix", // Should be encrypted client side.
+        ///         "encryptedLink": "https://netflix.com", // Should be encrypted client side.
+        ///         "encryptedUsername": "Max", // Should be encrypted client side.
+        ///         "encryptedPassword": "hunter2" // Should be encrypted client side.
+        ///     }
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Added password."
+        ///     }
+        /// </remarks>
+        /// <response code="200">Created the password, and returns a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpPost("CreatePasswordEntry")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> CreatePasswordEntry(PasswordDto passwordDto)
         {
             if (passwordDto.Uuid != null)
@@ -48,7 +81,33 @@ namespace PasswordManagerServer.Controllers
             return Ok(new MessageDto("Added password."));
         }
 
+        /// <summary>
+        /// Changes the information about a password, all information, ahould be encrypted client side.
+        /// </summary>
+        /// <param passwordDto="All the information for the updated password."></param>
+        /// <returns MessageDto="Explaines the success or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     {
+        ///         "encryptedName": "Minecraft", // Should be encrypted client side.
+        ///         "encryptedLink": "https://minecraft.com", // Should be encrypted client side.
+        ///         "encryptedUsername": "xX_MineBoy_420_69_Xx", // Should be encrypted client side.
+        ///         "encryptedPassword": "hunter2" // Should be encrypted client side.
+        ///     }
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Updated the password."
+        ///     }
+        /// </remarks>
+        /// <response code="200">Updated the password, and returns a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpPatch("UpdatePasswordEntry")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> UpdatePasswordEntry(PasswordDto passwordDto)
         {
             if (string.IsNullOrWhiteSpace(passwordDto.Uuid))
@@ -72,7 +131,29 @@ namespace PasswordManagerServer.Controllers
             return Ok(new MessageDto("Updated the password."));
         }
 
+
+        /// <summary>
+        /// Deletes a passwort by uuid.
+        /// </summary>
+        /// <param Uuid="The unique idenntifier of the password."></param>
+        /// <returns MessageDto="Explaines the success or error."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     DELETE /api/DeletePasswordEntry/3abbead3-4c20-4baf-94ae-03a45e239521
+        ///     
+        /// Sample response:
+        /// 
+        ///     {
+        ///         "message": "Deleted the password."
+        ///     }
+        /// </remarks>
+        /// <response code="200">Deleted the password, and returns a success message.</response>
+        /// <response code="400">Returns a error message.</response>
         [HttpDelete("DeletePasswordEntry/{Uuid}")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> DeletePasswordEntry(string Uuid)
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
@@ -87,10 +168,43 @@ namespace PasswordManagerServer.Controllers
                 .Remove(_dataContext.PasswordEntries
                     .First(entry => entry.Uuid == Uuid));
             await _dataContext.SaveChangesAsync();
-            return Ok(new MessageDto("Deleted password."));
+            return Ok(new MessageDto("Deleted the password."));
         }
 
+
+        /// <summary>
+        /// Returns all passwords from a user.
+        /// </summary>
+        /// <param></param>
+        /// <returns PasswordDto="The passwords of the user."></returns>
+        /// <remarks>
+        /// Sample request:
+        /// 
+        ///     GET /api/ListPasswordEntrys
+        ///     
+        /// Sample response:
+        /// 
+        ///     [
+        ///         {
+        ///             "uuid": "3abbead3-4c20-4baf-94ae-03a45e239521",
+        ///             "encryptedName": "Roblox",
+        ///             "encryptedLink": "http://robux.com",
+        ///             "encryptedUsername": "xXx_RobloxBoy187_xXx",
+        ///             "encryptedPassword": "roblox11!!!111"
+        ///         },
+        ///         {
+        ///             "uuid": "d4a10f01-9478-4c25-9a58-04e885789890",
+        ///             "encryptedName": "Fortnite",
+        ///             "encryptedLink": null,
+        ///             "encryptedUsername": "FortnutFan34853847568934",
+        ///             "encryptedPassword": "FoRtNiTeFoRlIfe_reeeeeeeeee"
+        ///         }
+        ///     ]
+        /// </remarks>
+        /// <response code="200">Returns all passwords.</response>
         [HttpGet("ListPasswordEntrys")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(PasswordDto), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<PasswordDto>>> ListPasswordEntrys()
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
