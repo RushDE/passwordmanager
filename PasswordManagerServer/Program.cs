@@ -34,7 +34,6 @@ namespace PasswordManagerServer
                     options.SwaggerDoc(
                         "v1", new OpenApiInfo
                         {
-                            Version = "v1",
                             Title = "PasswordManager Vault API",
                             Description = "An ASP.NET Core Web API for managing the users and their passwords from the PaswordManager."
                         }
@@ -78,8 +77,22 @@ namespace PasswordManagerServer
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                app.UseStaticFiles();
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(
+                    options =>
+                    {
+                        options.SwaggerEndpoint(
+                            "/swagger/v1/swagger.json",
+                            "PasswordManager Vault API"
+                        );
+                        if (builder.Configuration.GetValue<bool>("Swagger:DarkMode"))
+                        {
+                            // Source: https://github.com/Amoenus/SwaggerDark/
+                            options.InjectStylesheet("/SwaggerUi/SwaggerDark.css");
+                        }
+                    }
+                );
             }
 
             app.UseHttpsRedirection();
