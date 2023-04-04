@@ -204,7 +204,7 @@ namespace PasswordManagerServer.Controllers
         /// <response code="200">Returns all passwords.</response>
         [HttpGet("ListPasswordEntrys")]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(PasswordDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<PasswordDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<PasswordDto>>> ListPasswordEntrys()
         {
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
