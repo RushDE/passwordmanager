@@ -46,7 +46,7 @@ namespace PasswordManagerServer.Controllers
         /// 
         ///     {
         ///         "username": "Max",
-        ///         "prehashedPassword": "hunter2" // Should be already hashed once with bcrypt.
+        ///         "prehashedPassword": "hunter2" // Should be already hashed once with sha256 with the username as salt.
         ///     }
         ///     
         /// Sample response:
@@ -96,7 +96,7 @@ namespace PasswordManagerServer.Controllers
         /// 
         ///     {
         ///         "username": "Max",
-        ///         "prehashedPassword": "hunter2" // Should be already hashed once with bcrypt.
+        ///         "prehashedPassword": "hunter2" // Should be already hashed once with sha256 with the username as salt.
         ///     }
         ///     
         /// Sample response:
@@ -136,8 +136,8 @@ namespace PasswordManagerServer.Controllers
         /// Sample request:
         /// 
         ///     {
-        ///         "prehashedOldPassword": "hunter2",  // Should be already hashed once with bcrypt.
-        ///         "prehashedNewPassword": "password"  // Should be already hashed once with bcrypt.
+        ///         "prehashedOldPassword": "hunter2",  // Should be already hashed once with sha256 with the username as salt.
+        ///         "prehashedNewPassword": "password"  // Should be already hashed once with sha256 with the username as salt.
         ///     }
         ///     
         /// Sample response:
@@ -179,7 +179,7 @@ namespace PasswordManagerServer.Controllers
         /// Sample request:
         /// 
         ///     {
-        ///         "prehashedPassword": "hunter2" // Should be already hashed once with bcrypt.
+        ///         "prehashedPassword": "hunter2" // Should be already hashed once with sha256 with the username as salt.
         ///     }
         ///     
         /// Sample response:
