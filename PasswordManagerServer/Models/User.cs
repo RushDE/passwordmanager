@@ -17,7 +17,7 @@ namespace PasswordManagerServer.Models
         /// </summary>
         public string Username { get; set; } = string.Empty;
         /// <summary>
-        /// The password hash for the account, teeice hashed with sha256 with the username as salt.
+        /// The password hash for the account, teeice hashed with sha512 with the username as salt.
         /// Once on the client side, once on the server side.
         /// </summary>
         public string PasswordHash { get; set; } = string.Empty;

@@ -8,7 +8,7 @@ namespace PasswordManagerServer.Dtos
     public class DeleteUserDto
     {
         /// <summary>
-        /// The password should be prehashed once, with sha256 with the username as salt.
+        /// The password should be prehashed once, with sha512 with the username as salt.
         /// </summary>
         [Required]
         public string PrehashedPassword { get; set; } = string.Empty;

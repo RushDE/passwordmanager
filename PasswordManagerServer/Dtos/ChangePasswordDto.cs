@@ -8,12 +8,12 @@ namespace PasswordManagerServer.Dtos
     public class ChangePasswordDto
     {
         /// <summary>
-        /// The old password of the user, prehashed once with sha256 with the username as salt.
+        /// The old password of the user, prehashed once with sha512 with the username as salt.
         /// </summary>
         [Required]
         public string PrehashedOldPassword { get; set; } = string.Empty;
         /// <summary>
-        /// The new password of the user, prehashed once with sha256 with the username as salt.
+        /// The new password of the user, prehashed once with sha512 with the username as salt.
         /// </summary>
         [Required]
         public string PrehashedNewPassword { get; set; } = string.Empty;

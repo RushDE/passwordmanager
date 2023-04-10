@@ -13,7 +13,7 @@ namespace PasswordManagerServer.Dtos
         [Required]
         public string Username { get; set; } = string.Empty;
         /// <summary>
-        /// The account password, should be prehashed once with sha256 with the username as salt.
+        /// The account password, should be prehashed once with sha512 with the username as salt.
         /// </summary>
         [Required]
         public string PrehashedPassword { get; set; } = string.Empty;

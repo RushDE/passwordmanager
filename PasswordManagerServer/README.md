@@ -14,7 +14,7 @@ Wenn du in die Datenbank schauen willst, kann ich dafür `DB Browser (SQLite)` d
 
 # Database Scheme
 ## `Users`
-(Der `PasswordHash` sollte auch bereits Clientseitig einmal mit sha256 mit dem Usernamen als Salz gehasht werden. (Auf Zero-Knoweledge basis und so...))
+(Der `PasswordHash` sollte auch bereits Clientseitig einmal mit sha512 mit dem Usernamen als Salz gehasht werden. (Auf Zero-Knoweledge basis und so...))
 | Uuid | Username | PasswordHash |
 | - | - | - |
 
