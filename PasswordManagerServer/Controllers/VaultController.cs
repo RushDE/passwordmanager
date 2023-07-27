@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PasswordManagerServer.Data;
 using PasswordManagerServer.Dtos;
+using PasswordManagerServer.Helpers;
 using PasswordManagerServer.Models;
 
 namespace PasswordManagerServer.Controllers
@@ -66,7 +66,7 @@ namespace PasswordManagerServer.Controllers
                 return BadRequest(new MessageDto("The Uuid field has to be empty."));
             }
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
-            await _dataContext.PasswordEntries.AddAsync(
+            _ = await _dataContext.PasswordEntries.AddAsync(
                 new PasswordEntry()
                 {
                     Uuid = Guid.NewGuid().ToString(),
@@ -77,7 +77,7 @@ namespace PasswordManagerServer.Controllers
                     Password = passwordDto.EncryptedPassword
                 }
             );
-            await _dataContext.SaveChangesAsync();
+            _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Added password."));
         }
 
@@ -110,24 +110,15 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> UpdatePasswordEntry(PasswordDto passwordDto)
         {
-            if (string.IsNullOrWhiteSpace(passwordDto.Uuid))
+            try
             {
-                return BadRequest(new MessageDto("The Uuid field has to be given."));
+                Vault.UpdatePasswordEntry(_dataContext, Auth.GetUuid(_httpContextAccessor), passwordDto);
             }
-            string requestUuid = Auth.GetUuid(_httpContextAccessor);
-            if (!_dataContext.PasswordEntries.Any(
-                entry => entry.Uuid == passwordDto.Uuid && entry.UserUuid == requestUuid
-                )
-            )
+            catch (ArgumentException exception)
             {
-                return BadRequest(new MessageDto("Password entry doesen't exist."));
+                return BadRequest(new MessageDto(exception.Message));
             }
-            PasswordEntry entry = _dataContext.PasswordEntries.First(entry => entry.Uuid == passwordDto.Uuid);
-            entry.Name = passwordDto.EncryptedName;
-            entry.Link = passwordDto.EncryptedLink;
-            entry.Username = passwordDto.EncryptedUsername;
-            entry.Password = passwordDto.EncryptedPassword;
-            await _dataContext.SaveChangesAsync();
+            _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Updated the password."));
         }
 
@@ -164,10 +155,10 @@ namespace PasswordManagerServer.Controllers
             {
                 return BadRequest(new MessageDto("Password entry doesen't exist."));
             }
-            _dataContext.PasswordEntries
+            _ = _dataContext.PasswordEntries
                 .Remove(_dataContext.PasswordEntries
                     .First(entry => entry.Uuid == Uuid));
-            await _dataContext.SaveChangesAsync();
+            _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Deleted the password."));
         }
 
@@ -207,21 +198,10 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(List<PasswordDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<PasswordDto>>> ListPasswordEntrys()
         {
-            string requestUuid = Auth.GetUuid(_httpContextAccessor);
-            return (await _dataContext.PasswordEntries
-                .Where(entry => entry.UserUuid == requestUuid)
-                .ToListAsync())
-                .Select(
-                    entry => new PasswordDto()
-                    {
-                        Uuid = entry.Uuid,
-                        EncryptedName = entry.Name,
-                        EncryptedLink = entry.Link,
-                        EncryptedUsername = entry.Username,
-                        EncryptedPassword = entry.Password
-                    }
-                )
-                .ToList();
+            return await Vault.ListPasswordEntrys(
+                _dataContext,
+                Auth.GetUuid(_httpContextAccessor)
+            );
         }
     }
 }

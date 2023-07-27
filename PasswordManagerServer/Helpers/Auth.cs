@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace PasswordManagerServer
+namespace PasswordManagerServer.Helpers
 {
     /// <summary>
     /// Includes all the helper methods that do something with authentification.
@@ -19,27 +19,27 @@ namespace PasswordManagerServer
         /// <exception cref="Exception"></exception>
         public static string CreateToken(IConfiguration configuration, string uuid)
         {
-            var claims = new List<Claim>
+            List<Claim> claims = new()
             {
                 new Claim(ClaimTypes.NameIdentifier, uuid)
             };
-            var jwtTokenKey = configuration.GetSection("Jwt:TokenKey")?.Value;
+            string? jwtTokenKey = configuration.GetSection("Jwt:TokenKey")?.Value;
             if (string.IsNullOrWhiteSpace(jwtTokenKey))
             {
                 throw new Exception("Couldn't find the jwt token key.");
             }
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenKey));
-            var credentials = new SigningCredentials(
+            SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(jwtTokenKey));
+            SigningCredentials credentials = new(
                 key,
                 SecurityAlgorithms.HmacSha512Signature
             );
             int expirationInHours = configuration.GetValue<int>("Jwt:ExpirationInHours");
-            var token = new JwtSecurityToken(
+            JwtSecurityToken token = new(
                 claims: claims,
                 expires: DateTime.Now.AddHours(expirationInHours),
                 signingCredentials: credentials
             );
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            string jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return $"bearer {jwt}";
         }
 
@@ -50,7 +50,7 @@ namespace PasswordManagerServer
         /// <returns></returns>
         public static string GetUuid(IHttpContextAccessor httpContextAccessor)
         {
-            var uuid = httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            string uuid = httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
             return uuid;
         }
     }

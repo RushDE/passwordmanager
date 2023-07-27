@@ -21,14 +21,14 @@ namespace PasswordManagerServer
         /// <param args="The command line args."></param>
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            _ = builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen(
+            _ = builder.Services.AddEndpointsApiExplorer();
+            _ = builder.Services.AddSwaggerGen(
                 options =>
                 {
                     options.SwaggerDoc(
@@ -48,16 +48,16 @@ namespace PasswordManagerServer
                         }
                     );
                     options.OperationFilter<SecurityRequirementsOperationFilter>();
-                    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    string xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
                 }
             );
-            builder.Services.AddDbContext<DataContext>(
+            _ = builder.Services.AddDbContext<DataContext>(
                 options => options.UseSqlite(
                     builder.Configuration.GetConnectionString("DefaultConnection")
                 )
             );
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            _ = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(
                     options => options.TokenValidationParameters = new TokenValidationParameters()
                     {
@@ -69,16 +69,16 @@ namespace PasswordManagerServer
                         ValidateAudience = false,
                     }
                 );
-            builder.Services.AddHttpContextAccessor();
+            _ = builder.Services.AddHttpContextAccessor();
 
-            var app = builder.Build();
+            WebApplication app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseStaticFiles();
-                app.UseSwagger();
-                app.UseSwaggerUI(
+                _ = app.UseStaticFiles();
+                _ = app.UseSwagger();
+                _ = app.UseSwaggerUI(
                     options =>
                     {
                         options.SwaggerEndpoint(
@@ -94,13 +94,13 @@ namespace PasswordManagerServer
                 );
             }
 
-            app.UseHttpsRedirection();
+            _ = app.UseHttpsRedirection();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
+            _ = app.UseAuthentication();
+            _ = app.UseAuthorization();
 
 
-            app.MapControllers();
+            _ = app.MapControllers();
 
             app.Run();
         }

@@ -17,5 +17,11 @@ namespace PasswordManagerServer.Dtos
         /// </summary>
         [Required]
         public string PrehashedNewPassword { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The the passwords reencrypted with the new password.
+        /// </summary>
+        [Required]
+        public List<PasswordDto> ReencryptedPasswords { get; set; } = new List<PasswordDto>();
     }
 }

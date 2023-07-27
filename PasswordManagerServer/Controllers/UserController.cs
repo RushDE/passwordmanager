@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PasswordManagerServer.Data;
 using PasswordManagerServer.Dtos;
+using PasswordManagerServer.Helpers;
 using PasswordManagerServer.Models;
 
 namespace PasswordManagerServer.Controllers
@@ -76,13 +77,13 @@ namespace PasswordManagerServer.Controllers
             }
 
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.PrehashedPassword);
-            await _dataContext.Users.AddAsync(new User
+            _ = await _dataContext.Users.AddAsync(new User
             {
                 Uuid = Guid.NewGuid().ToString(),
                 Username = userDto.Username,
                 PasswordHash = passwordHash,
             });
-            await _dataContext.SaveChangesAsync();
+            _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Registered user."));
         }
 
@@ -134,10 +135,27 @@ namespace PasswordManagerServer.Controllers
         /// <returns MessageDto="Explaines the success or error."></returns>
         /// <remarks>
         /// Sample request:
-        /// 
+        ///     
         ///     {
         ///         "prehashedOldPassword": "hunter2",  // Should be already hashed once with sha512 with the username as salt.
         ///         "prehashedNewPassword": "password"  // Should be already hashed once with sha512 with the username as salt.
+        ///         "reencryptedPasswords":
+        ///         [
+        ///             {
+        ///                 "uuid": "3abbead3-4c20-4baf-94ae-03a45e239521",
+        ///                 "encryptedName": "Roblox",
+        ///                 "encryptedLink": "http://robux.com",
+        ///                 "encryptedUsername": "xXx_RobloxBoy187_xXx",
+        ///                 "encryptedPassword": "roblox11!!!111"
+        ///             },
+        ///             {
+        ///                 "uuid": "d4a10f01-9478-4c25-9a58-04e885789890",
+        ///                 "encryptedName": "Fortnite",
+        ///                 "encryptedLink": null,
+        ///                 "encryptedUsername": "FortnutFan34853847568934",
+        ///                 "encryptedPassword": "FoRtNiTeFoRlIfe_reeeeeeeeee"
+        ///             }
+        ///         ]
         ///     }
         ///     
         /// Sample response:
@@ -154,6 +172,7 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> ChangePassword(ChangePasswordDto changePasswordDto)
         {
+            // Authenticate the user.
             string requestUuid = Auth.GetUuid(_httpContextAccessor);
             if (!_dataContext.Users.Any(user => user.Uuid == requestUuid))
             {
@@ -164,8 +183,46 @@ namespace PasswordManagerServer.Controllers
             {
                 return BadRequest(new MessageDto("Invalid old password."));
             }
+
+            // Check if all passwords were reencrypted.
+            IEnumerable<string> oldPasswordUuids = (
+                await Vault.ListPasswordEntrys(
+                    _dataContext,
+                    requestUuid
+                    )
+                )
+                .Select(password => password.Uuid)
+                .OfType<string>();
+            IEnumerable<string> newPasswordUuids = changePasswordDto
+                .ReencryptedPasswords
+                .Select(password => password.Uuid)
+                .OfType<string>();
+            if (
+                !new HashSet<string>(oldPasswordUuids)
+                .SetEquals(new HashSet<string>(newPasswordUuids))
+               )
+            {
+                return BadRequest(new MessageDto("Not all/too many reencrypted passwords."));
+            }
+
+            // Check and update the new passwords.
+            foreach (PasswordDto reencryptedPassword in changePasswordDto.ReencryptedPasswords)
+            {
+                try
+                {
+                    Vault.UpdatePasswordEntry(_dataContext, requestUuid, reencryptedPassword);
+                }
+                catch (ArgumentException exception)
+                {
+                    return BadRequest(new MessageDto($"One or more password entrys have the following problem: {exception.Message}"));
+                }
+            }
+
+            // Set the new user password.
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.PrehashedNewPassword);
-            await _dataContext.SaveChangesAsync();
+
+            // After all checks passed, write the changes to the db.
+            _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Changed password."));
         }
 
@@ -213,7 +270,7 @@ namespace PasswordManagerServer.Controllers
             await _dataContext.PasswordEntries
                 .Where(entry => entry.UserUuid == requestUuid)
                 .ForEachAsync(entry => _dataContext.PasswordEntries.Remove(entry));
-            await _dataContext.SaveChangesAsync();
+            _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Deleted user and all passwords."));
         }
     }
