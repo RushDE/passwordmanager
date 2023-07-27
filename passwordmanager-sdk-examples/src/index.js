@@ -1,9 +1,10 @@
-import PasswordManagerApi from "passwordmanager-sdk";
+import { PasswordManagerApi, ApiError } from "passwordmanager-sdk";
 
 //////////////////// "Settings" ////////////////////
 
-const USERNAME = "joe";
-const PASSWORD = "hunter2";
+const USERNAME = "max";
+const OLD_PASSWORD = "hunter2";
+const NEW_PASSWORD = "2retnuh"; // Much safer.
 
 //////////////////// Constants ////////////////////
 
@@ -17,28 +18,23 @@ const COLORS = Object.freeze({
 
 //////////////////// Functions ////////////////////
 
+function logBase(color, prefix, output) {
+  if (typeof output !== "string") {
+    output = JSON.stringify(output, null, 4);
+  }
+  console.log(`${color}${prefix}${COLORS.CMD_RESET}${output}`);
+}
+
 function logInfo(output) {
-  console.log(`${COLORS.FG_CYAN}INFO:${COLORS.CMD_RESET} ${output}`);
+  logBase(COLORS.FG_CYAN, "INFO: ", output);
 }
 
 function logSuccess(output) {
-  console.log(
-    `${COLORS.FG_GREEN}SUCCESS:${COLORS.CMD_RESET}\n${JSON.stringify(
-      output,
-      null,
-      4
-    )}`
-  );
+  logBase(COLORS.FG_GREEN, "SUCCESS:\n", output);
 }
 
 function logError(output) {
-  console.log(
-    `${COLORS.FG_RED}ERROR:${COLORS.CMD_RESET}\n${JSON.stringify(
-      output,
-      null,
-      4
-    )}`
-  );
+  logBase(COLORS.FG_RED, "ERROR:\n", output);
 }
 
 //////////////////// Main ////////////////////
@@ -49,16 +45,35 @@ async function main() {
 
   logInfo("Creating a new user.");
   try {
-    logSuccess(await pma.userRegister(USERNAME, PASSWORD));
+    logSuccess(await pma.userRegister(USERNAME, OLD_PASSWORD));
   } catch (error) {
-    logError(error);
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
   }
 
   logInfo("Logging the user in.");
   try {
-    logSuccess(await pma.userLogin(USERNAME, PASSWORD));
+    logSuccess(await pma.userLogin(USERNAME, OLD_PASSWORD));
   } catch (error) {
-    logError(error);
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
+
+  logInfo("Changing the users password.");
+  try {
+    logSuccess(await pma.userChangePassword(OLD_PASSWORD, NEW_PASSWORD));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
   }
 }
 
