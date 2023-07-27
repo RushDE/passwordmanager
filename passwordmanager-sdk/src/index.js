@@ -3,11 +3,13 @@ import crypto from "crypto";
 
 class PasswordManagerApi {
   constructor(backendDomain) {
-    this.backendDomain = backendDomain;
-    this.apiHeaders = {
+    this.API_HEADERS = {
       "Content-type": "application/json",
       accept: "application/json",
     };
+
+    this.backendDomain = backendDomain;
+    this.token = undefined;
   }
 
   async userRegister(username, password) {
@@ -18,14 +20,32 @@ class PasswordManagerApi {
         username: username,
         prehashedPassword: prehashedPassword,
       }),
-      headers: this.apiHeaders,
+      headers: this.API_HEADERS,
     });
-
-    const message = (await response.json()).message;
+    const json = await response.json();
     if (response.ok) {
-      return message;
+      return json;
     } else {
-      throw message;
+      throw json;
+    }
+  }
+
+  async userLogin(username, password) {
+    const prehashedPassword = await this.#sha512(password + username);
+    const response = await fetch(`${this.backendDomain}/api/User/Login`, {
+      method: "POST",
+      body: JSON.stringify({
+        username: username,
+        prehashedPassword: prehashedPassword,
+      }),
+      headers: this.API_HEADERS,
+    });
+    const json = await response.json();
+    if (response.ok) {
+      this.token = json.token;
+      return json;
+    } else {
+      throw json;
     }
   }
 
