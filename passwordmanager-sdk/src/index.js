@@ -2,14 +2,22 @@ import fetch from "node-fetch";
 import crypto from "crypto";
 
 export class PasswordManagerApi {
+  #HASH_ITAERATIONS;
+  #PREHASH_ITERATIONS;
+
   constructor(backendDomain) {
+    this.#HASH_ITAERATIONS = 5;
+    this.#PREHASH_ITERATIONS = 15;
     this.backendDomain = backendDomain;
     this.username = undefined;
     this.token = undefined;
   }
 
   async userRegister(username, password) {
-    const prehashedPassword = await this.#sha512(password + username);
+    const prehashedPassword = await this.#sha512(
+      password + username,
+      this.#PREHASH_ITERATIONS
+    );
     const response = await fetch(`${this.backendDomain}/api/User/Register`, {
       method: "POST",
       body: JSON.stringify({
@@ -27,7 +35,10 @@ export class PasswordManagerApi {
   }
 
   async userLogin(username, password) {
-    const prehashedPassword = await this.#sha512(password + username);
+    const prehashedPassword = await this.#sha512(
+      password + username,
+      this.#PREHASH_ITERATIONS
+    );
     const response = await fetch(`${this.backendDomain}/api/User/Login`, {
       method: "POST",
       body: JSON.stringify({
@@ -47,14 +58,17 @@ export class PasswordManagerApi {
   }
 
   async userChangePassword(oldPassword, newPassword) {
+    // TODO: Would *probably* be good to reencrypt the passwords with the new password.
     if (this.username === undefined || this.token === undefined) {
       throw new ApiError({ message: "You have to login first." });
     }
     const prehashedOldPassword = await this.#sha512(
-      oldPassword + this.username
+      oldPassword + this.username,
+      this.#PREHASH_ITERATIONS
     );
     const prehashedNewPassword = await this.#sha512(
-      newPassword + this.username
+      newPassword + this.username,
+      this.#PREHASH_ITERATIONS
     );
     const response = await fetch(
       `${this.backendDomain}/api/User/ChangePassword`,
@@ -75,8 +89,34 @@ export class PasswordManagerApi {
     }
   }
 
-  async #sha512(data) {
-    return crypto.createHash("sha512").update(data, "binary").digest("hex");
+  async userDelete(password) {
+    if (this.username === undefined || this.token === undefined) {
+      throw new ApiError({ message: "You have to login first." });
+    }
+    const prehashedPassword = await this.#sha512(
+      password + this.username,
+      this.#PREHASH_ITERATIONS
+    );
+    const response = await fetch(`${this.backendDomain}/api/User/DeleteUser`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        prehashedPassword: prehashedPassword,
+      }),
+      headers: this.#getApiHeaders(),
+    });
+    const json = await response.json();
+    if (response.ok) {
+      return json;
+    } else {
+      throw new ApiError(json);
+    }
+  }
+
+  async #sha512(data, iterations) {
+    for (let i = 0; i < iterations; i++) {
+      data = crypto.createHash("sha512").update(data, "binary").digest("hex");
+    }
+    return data;
   }
 
   #getApiHeaders() {

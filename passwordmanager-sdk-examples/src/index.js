@@ -75,6 +75,17 @@ async function main() {
       throw error;
     }
   }
+
+  logInfo("Deleting the user.");
+  try {
+    logSuccess(await pma.userDelete(NEW_PASSWORD));
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
 }
 
 main();
