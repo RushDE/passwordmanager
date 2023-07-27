@@ -18,6 +18,7 @@ const COLORS = Object.freeze({
 
 //////////////////// Functions ////////////////////
 
+// The log functions are mostly irrelevant, just fancy `console.log()`'s.
 function logBase(color, prefix, output) {
   if (typeof output !== "string") {
     output = JSON.stringify(output, null, 4);
@@ -45,7 +46,8 @@ async function main() {
 
   logInfo("Creating a new user.");
   try {
-    logSuccess(await pma.userRegister(USERNAME, OLD_PASSWORD));
+    await pma.userRegister(USERNAME, OLD_PASSWORD);
+    logSuccess("Created a new user.");
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);
@@ -56,7 +58,8 @@ async function main() {
 
   logInfo("Logging the user in.");
   try {
-    logSuccess(await pma.userLogin(USERNAME, OLD_PASSWORD));
+    await pma.userLogin(USERNAME, OLD_PASSWORD);
+    logSuccess("Logged the user in.");
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);
@@ -67,7 +70,8 @@ async function main() {
 
   logInfo("Changing the users password.");
   try {
-    logSuccess(await pma.userChangePassword(OLD_PASSWORD, NEW_PASSWORD));
+    await pma.userChangePassword(OLD_PASSWORD, NEW_PASSWORD);
+    logSuccess("Changed the users password.");
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);
@@ -78,7 +82,8 @@ async function main() {
 
   logInfo("Deleting the user.");
   try {
-    logSuccess(await pma.userDelete(NEW_PASSWORD));
+    await pma.userDelete(NEW_PASSWORD);
+    logSuccess("Deleted the user.");
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);

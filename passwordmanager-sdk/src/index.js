@@ -26,11 +26,8 @@ export class PasswordManagerApi {
       }),
       headers: this.#getApiHeaders(),
     });
-    const json = await response.json();
-    if (response.ok) {
-      return json;
-    } else {
-      throw new ApiError(json);
+    if (!response.ok) {
+      throw new ApiError((await response.json()).message);
     }
   }
 
@@ -51,16 +48,15 @@ export class PasswordManagerApi {
     if (response.ok) {
       this.username = username;
       this.token = json.token;
-      return json;
     } else {
-      throw new ApiError(json);
+      throw new ApiError(json.message);
     }
   }
 
   async userChangePassword(oldPassword, newPassword) {
     // TODO: Would *probably* be good to reencrypt the passwords with the new password.
     if (this.username === undefined || this.token === undefined) {
-      throw new ApiError({ message: "You have to login first." });
+      throw new ApiError("You have to login first.");
     }
     const prehashedOldPassword = await this.#sha512(
       oldPassword + this.username,
@@ -81,11 +77,8 @@ export class PasswordManagerApi {
         headers: this.#getApiHeaders(),
       }
     );
-    const json = await response.json();
-    if (response.ok) {
-      return json;
-    } else {
-      throw new ApiError(json);
+    if (!response.ok) {
+      throw new ApiError((await response.json()).message);
     }
   }
 
@@ -104,11 +97,8 @@ export class PasswordManagerApi {
       }),
       headers: this.#getApiHeaders(),
     });
-    const json = await response.json();
-    if (response.ok) {
-      return json;
-    } else {
-      throw new ApiError(json);
+    if (!response.ok) {
+      throw new ApiError((await response.json()).message);
     }
   }
 
