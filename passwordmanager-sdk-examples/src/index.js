@@ -38,6 +38,10 @@ function logError(output) {
   logBase(COLORS.FG_RED, "ERROR:\n", output);
 }
 
+function logNeutral(output) {
+  logBase("", "", output);
+}
+
 //////////////////// Main ////////////////////
 
 async function main() {
@@ -68,6 +72,73 @@ async function main() {
     }
   }
 
+  logInfo("Creating a full password entry.");
+  try {
+    await pma.vaultCreatePassword({
+      name: "Netflix",
+      link: "www.netflix.com",
+      username: "joe",
+      password: "mama",
+    });
+    logSuccess("Created a full password entry.");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
+
+  logInfo("Creating a password entry with missing fields.");
+  try {
+    await pma.vaultCreatePassword({
+      link: "www.cornhub.com",
+      password: "iLikeBeans",
+    });
+    logSuccess("Created a password entry with missing fields.");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
+
+  logInfo("Fetching all password entrys from the user.");
+  const passwordEntrys = await pma.vaultListPasswordEntrys();
+  const passwordUuidToUpdate = passwordEntrys[1].uuid; // "Remember" for the next step to update and the delete it.
+  logSuccess(passwordEntrys);
+
+  logInfo("Change the password entry from before.");
+  try {
+    await pma.vaultUpdatePasswordEntry(passwordUuidToUpdate, {
+      link: "www.github.com",
+      password: "iLikeBeans",
+    });
+    logSuccess("Changed the password entry.");
+    logNeutral(await pma.vaultListPasswordEntrys());
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
+
+  logInfo("Delete the password we just changed.");
+  try {
+    await pma.vaultDeletePasswordEntry(passwordUuidToUpdate);
+    logSuccess("Deleted the password entry.");
+    logNeutral(await pma.vaultListPasswordEntrys());
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
+
+  /*
   logInfo("Changing the users password.");
   try {
     await pma.userChangePassword(OLD_PASSWORD, NEW_PASSWORD);
@@ -79,11 +150,12 @@ async function main() {
       throw error;
     }
   }
+  */
 
-  logInfo("Deleting the user.");
+  logInfo("Deleting the user and all their passwords.");
   try {
-    await pma.userDelete(NEW_PASSWORD);
-    logSuccess("Deleted the user.");
+    await pma.userDelete(OLD_PASSWORD); // await pma.userDelete(NEW_PASSWORD);
+    logSuccess("Deleted the user and all their passwords.");
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);
