@@ -138,11 +138,13 @@ async function main() {
     }
   }
 
-  /*
   logInfo("Changing the users password.");
   try {
     await pma.userChangePassword(OLD_PASSWORD, NEW_PASSWORD);
-    logSuccess("Changed the users password.");
+    logSuccess(
+      "Changed the users password, and you can still access the passwords."
+    );
+    logNeutral(await pma.vaultListPasswordEntrys());
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);
@@ -150,11 +152,10 @@ async function main() {
       throw error;
     }
   }
-  */
 
   logInfo("Deleting the user and all their passwords.");
   try {
-    await pma.userDelete(OLD_PASSWORD); // await pma.userDelete(NEW_PASSWORD);
+    await pma.userDelete(NEW_PASSWORD);
     logSuccess("Deleted the user and all their passwords.");
   } catch (error) {
     if (error instanceof ApiError) {

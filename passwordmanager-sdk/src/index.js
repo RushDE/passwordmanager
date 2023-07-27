@@ -62,7 +62,6 @@ export class PasswordManagerApi {
   }
 
   async userChangePassword(oldPassword, newPassword) {
-    // TODO: Would *probably* be good to reencrypt the passwords with the new password.
     if (this.username === undefined || this.token === undefined) {
       throw new ApiError("You have to login first.");
     }
@@ -74,6 +73,22 @@ export class PasswordManagerApi {
       newPassword + this.username,
       this.#PREHASH_ITERATIONS
     );
+
+    // Reencrypt all passwords.
+    const passwordEntrys = await this.vaultListPasswordEntrys();
+    this.key = await this.#encryptionKeyFromPassword(newPassword);
+    let reencryptedPasswordEntrys = [];
+    for (const passwordEntry of passwordEntrys) {
+      let reencryptedPasswordEntry = this.#encryptPasswordEntry({
+        name: passwordEntry.name,
+        link: passwordEntry.link,
+        username: passwordEntry.username,
+        password: passwordEntry.password,
+      });
+      reencryptedPasswordEntry.uuid = passwordEntry.uuid;
+      reencryptedPasswordEntrys.push(reencryptedPasswordEntry);
+    }
+
     const response = await fetch(
       `${this.backendDomain}/api/User/ChangePassword`,
       {
@@ -81,6 +96,7 @@ export class PasswordManagerApi {
         body: JSON.stringify({
           prehashedOldPassword: prehashedOldPassword,
           prehashedNewPassword: prehashedNewPassword,
+          reencryptedPasswords: reencryptedPasswordEntrys,
         }),
         headers: this.#getApiHeaders(),
       }
