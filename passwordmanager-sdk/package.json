@@ -1,0 +1,12 @@
+{
+  "name": "passwordmanager-sdk",
+  "version": "1.0.0",
+  "description": "A sdk to communicate more easily with my password manager server rest api.",
+  "main": "./src/index.js",
+  "author": "Maximilian Forster",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
