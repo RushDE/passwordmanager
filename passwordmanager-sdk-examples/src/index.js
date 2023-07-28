@@ -72,6 +72,22 @@ async function main() {
     }
   }
 
+  logInfo("Logging the user out.");
+  pma.userLogout();
+  logSuccess("Logged the user out.");
+
+  logInfo("Logging the user back in.");
+  try {
+    await pma.userLogin(USERNAME, OLD_PASSWORD);
+    logSuccess("Logged the user back in.");
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logError(error.message);
+    } else {
+      throw error;
+    }
+  }
+
   logInfo("Creating a full password entry.");
   try {
     await pma.vaultCreatePassword({

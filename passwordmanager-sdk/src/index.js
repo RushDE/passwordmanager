@@ -7,15 +7,22 @@ export class PasswordManagerApi {
   #HASH_ITAERATIONS;
   #PREHASH_ITERATIONS;
 
+  //////////////////// Private fields ////////////////////
+
+  #backendDomain;
+  #username;
+  #token;
+  #key;
+
   //////////////////// Initialisation ////////////////////
 
   constructor(backendDomain) {
     this.#HASH_ITAERATIONS = 5;
     this.#PREHASH_ITERATIONS = 15;
-    this.backendDomain = backendDomain;
-    this.username = undefined;
-    this.token = undefined;
-    this.key = undefined;
+    this.#backendDomain = backendDomain;
+    this.#username = undefined;
+    this.#token = undefined;
+    this.#key = undefined;
   }
 
   //////////////////// /api/User/* Endpoints ////////////////////
@@ -25,7 +32,7 @@ export class PasswordManagerApi {
       password + username,
       this.#PREHASH_ITERATIONS
     );
-    const response = await fetch(`${this.backendDomain}/api/User/Register`, {
+    const response = await fetch(`${this.#backendDomain}/api/User/Register`, {
       method: "POST",
       body: JSON.stringify({
         username: username,
@@ -43,7 +50,7 @@ export class PasswordManagerApi {
       password + username,
       this.#PREHASH_ITERATIONS
     );
-    const response = await fetch(`${this.backendDomain}/api/User/Login`, {
+    const response = await fetch(`${this.#backendDomain}/api/User/Login`, {
       method: "POST",
       body: JSON.stringify({
         username: username,
@@ -53,30 +60,30 @@ export class PasswordManagerApi {
     });
     const json = await response.json();
     if (response.ok) {
-      this.username = username;
-      this.token = json.token;
-      this.key = await this.#encryptionKeyFromPassword(password);
+      this.#username = username;
+      this.#token = json.token;
+      this.#key = await this.#encryptionKeyFromPassword(password);
     } else {
       throw new ApiError(json.message);
     }
   }
 
   async userChangePassword(oldPassword, newPassword) {
-    if (this.username === undefined || this.token === undefined) {
+    if (this.#username === undefined || this.#token === undefined) {
       throw new ApiError("You have to login first.");
     }
     const prehashedOldPassword = await this.#sha512(
-      oldPassword + this.username,
+      oldPassword + this.#username,
       this.#PREHASH_ITERATIONS
     );
     const prehashedNewPassword = await this.#sha512(
-      newPassword + this.username,
+      newPassword + this.#username,
       this.#PREHASH_ITERATIONS
     );
 
     // Reencrypt all passwords.
     const passwordEntrys = await this.vaultListPasswordEntrys();
-    this.key = await this.#encryptionKeyFromPassword(newPassword);
+    this.#key = await this.#encryptionKeyFromPassword(newPassword);
     let reencryptedPasswordEntrys = [];
     for (const passwordEntry of passwordEntrys) {
       let reencryptedPasswordEntry = this.#encryptPasswordEntry({
@@ -90,7 +97,7 @@ export class PasswordManagerApi {
     }
 
     const response = await fetch(
-      `${this.backendDomain}/api/User/ChangePassword`,
+      `${this.#backendDomain}/api/User/ChangePassword`,
       {
         method: "PATCH",
         body: JSON.stringify({
@@ -107,14 +114,14 @@ export class PasswordManagerApi {
   }
 
   async userDelete(password) {
-    if (this.username === undefined || this.token === undefined) {
+    if (this.#username === undefined || this.#token === undefined) {
       throw new ApiError({ message: "You have to login first." });
     }
     const prehashedPassword = await this.#sha512(
-      password + this.username,
+      password + this.#username,
       this.#PREHASH_ITERATIONS
     );
-    const response = await fetch(`${this.backendDomain}/api/User/DeleteUser`, {
+    const response = await fetch(`${this.#backendDomain}/api/User/DeleteUser`, {
       method: "DELETE",
       body: JSON.stringify({
         prehashedPassword: prehashedPassword,
@@ -124,6 +131,12 @@ export class PasswordManagerApi {
     if (!response.ok) {
       throw new ApiError((await response.json()).message);
     }
+  }
+
+  async userLogout() {
+    this.#username = undefined;
+    this.#token = undefined;
+    this.#key = undefined;
   }
 
   //////////////////// /api/Vault/* Endpoints ////////////////////
@@ -141,7 +154,7 @@ export class PasswordManagerApi {
       password: password,
     });
     const response = await fetch(
-      `${this.backendDomain}/api/Vault/CreatePasswordEntry`,
+      `${this.#backendDomain}/api/Vault/CreatePasswordEntry`,
       {
         method: "POST",
         body: JSON.stringify(passwordEntry),
@@ -165,7 +178,7 @@ export class PasswordManagerApi {
     });
     passwordEntry.uuid = passwordUuid;
     const response = await fetch(
-      `${this.backendDomain}/api/Vault/UpdatePasswordEntry`,
+      `${this.#backendDomain}/api/Vault/UpdatePasswordEntry`,
       {
         method: "PATCH",
         body: JSON.stringify(passwordEntry),
@@ -179,7 +192,7 @@ export class PasswordManagerApi {
 
   async vaultDeletePasswordEntry(passwordUuid) {
     const response = await fetch(
-      `${this.backendDomain}/api/Vault/DeletePasswordEntry/${passwordUuid}`,
+      `${this.#backendDomain}/api/Vault/DeletePasswordEntry/${passwordUuid}`,
       {
         method: "DELETE",
         headers: this.#getApiHeaders(),
@@ -193,7 +206,7 @@ export class PasswordManagerApi {
   async vaultListPasswordEntrys() {
     // Fetch the passwords from the server.
     const response = await fetch(
-      `${this.backendDomain}/api/Vault/ListPasswordEntrys`,
+      `${this.#backendDomain}/api/Vault/ListPasswordEntrys`,
       {
         method: "GET",
         headers: this.#getApiHeaders(),
@@ -232,8 +245,8 @@ export class PasswordManagerApi {
       "Content-type": "application/json",
       accept: "application/json",
     };
-    if (this.token !== undefined) {
-      headers.Authorization = this.token;
+    if (this.#token !== undefined) {
+      headers.Authorization = this.#token;
     }
     return headers;
   }
@@ -250,7 +263,7 @@ export class PasswordManagerApi {
       return null;
     }
     const iv = crypto.randomBytes(16); // Generate a random initialization vector (IV).
-    const cipher = crypto.createCipheriv("aes-256-cbc", this.key, iv);
+    const cipher = crypto.createCipheriv("aes-256-cbc", this.#key, iv);
     let encrypted = cipher.update(input, "utf8", "hex");
     encrypted += cipher.final("hex");
     return iv.toString("hex") + encrypted;
@@ -262,7 +275,7 @@ export class PasswordManagerApi {
     }
     const iv = Buffer.from(encrypted.slice(0, 32), "hex"); // Extract the IV from the encrypted text.
     encrypted = encrypted.slice(32); // Remove the IV from the encrypted text.
-    const decipher = crypto.createDecipheriv("aes-256-cbc", this.key, iv);
+    const decipher = crypto.createDecipheriv("aes-256-cbc", this.#key, iv);
     let decrypted = decipher.update(encrypted, "hex", "utf8");
     decrypted += decipher.final("utf8");
     return decrypted;
