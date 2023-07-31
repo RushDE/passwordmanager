@@ -10,6 +10,6 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "passwordmanager-sdk": "file:../passwordmanager-sdk/passwordmanager-sdk-1.0.0.tgz"
+    "passwordmanager-sdk": "file:../passwordmanager-sdk/passwordmanager-sdk-2.0.0.tgz"
   }
 }

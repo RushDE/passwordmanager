@@ -1,10 +1,11 @@
 import fetch from "node-fetch";
+import forge from "node-forge";
 import crypto from "crypto";
 
 export class PasswordManagerApi {
   //////////////////// "Settings" ////////////////////
 
-  #HASH_ITAERATIONS;
+  #PBKDF2_ITERATIONS;
   #PREHASH_ITERATIONS;
 
   //////////////////// Private fields ////////////////////
@@ -17,7 +18,7 @@ export class PasswordManagerApi {
   //////////////////// Initialisation ////////////////////
 
   constructor(backendDomain) {
-    this.#HASH_ITAERATIONS = 5;
+    this.#PBKDF2_ITERATIONS = 5_000_000;
     this.#PREHASH_ITERATIONS = 15;
     this.#backendDomain = backendDomain;
     this.#username = undefined;
@@ -62,7 +63,7 @@ export class PasswordManagerApi {
     if (response.ok) {
       this.#username = username;
       this.#token = json.token;
-      this.#key = await this.#encryptionKeyFromPassword(password);
+      this.#key = this.#deriveKeyFromPassword(password);
     } else {
       throw new ApiError(json.message);
     }
@@ -83,7 +84,7 @@ export class PasswordManagerApi {
 
     // Reencrypt all passwords.
     const passwordEntrys = await this.vaultListPasswordEntrys();
-    this.#key = await this.#encryptionKeyFromPassword(newPassword);
+    this.#key = this.#deriveKeyFromPassword(newPassword);
     let reencryptedPasswordEntrys = [];
     for (const passwordEntry of passwordEntrys) {
       let reencryptedPasswordEntry = this.#encryptPasswordEntry({
@@ -251,11 +252,17 @@ export class PasswordManagerApi {
     return headers;
   }
 
-  async #encryptionKeyFromPassword(password) {
-    return Buffer.from(
-      await this.#sha512(password, this.#HASH_ITAERATIONS),
-      "utf-8"
-    ).subarray(0, 32);
+  #deriveKeyFromPassword(password) {
+    const passwordBytes = forge.util.encodeUtf8(password);
+    const saltBytes = new Uint8Array(16); // Should be all zeros, because the key is prvate.
+    const derivedKeyBytes = forge.pkcs5.pbkdf2(
+      passwordBytes,
+      saltBytes,
+      this.#PBKDF2_ITERATIONS,
+      32,
+      "sha256"
+    );
+    return Buffer.from(derivedKeyBytes, "binary");
   }
 
   #encryptAes256(input) {
