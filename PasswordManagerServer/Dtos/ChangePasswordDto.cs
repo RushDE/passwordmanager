@@ -22,6 +22,6 @@ namespace PasswordManagerServer.Dtos
         /// The the passwords reencrypted with the new password.
         /// </summary>
         [Required]
-        public List<PasswordDto> ReencryptedPasswords { get; set; } = new List<PasswordDto>();
+        public List<PasswordDto> ReencryptedPasswords { get; set; } = [];
     }
 }

@@ -19,10 +19,10 @@ namespace PasswordManagerServer.Helpers
         /// <exception cref="Exception"></exception>
         public static string CreateToken(IConfiguration configuration, string uuid)
         {
-            List<Claim> claims = new()
-            {
+            List<Claim> claims =
+            [
                 new Claim(ClaimTypes.NameIdentifier, uuid)
-            };
+            ];
             string? jwtTokenKey = configuration.GetSection("Jwt:TokenKey")?.Value;
             if (string.IsNullOrWhiteSpace(jwtTokenKey))
             {
