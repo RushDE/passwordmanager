@@ -94,11 +94,8 @@ namespace PasswordManagerServer
                 );
             }
 
-            _ = app.UseHttpsRedirection();
-
             _ = app.UseAuthentication();
             _ = app.UseAuthorization();
-
 
             _ = app.MapControllers();
 
