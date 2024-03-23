@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain} = require('electron');
 const path = require('path');
+const { send } = require('process');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -23,12 +24,20 @@ function createLoginWindow() {
   loginWindow.loadFile(path.join(__dirname, 'loginwindow/index.html'));
 
   // Listen for the 'login' event from the renderer process
-  ipcMain.on('send-master-password', (event) => {
-    // Close the login window
-    loginWindow.close();
+  ipcMain.on('send-master-login', (event, master, password) => {
+    console.log("Master received: " + master);
+    console.log("Password received: " + password);
+    // Check if the password is correct
+    if (password === 'test123' && master === 'test') {
+      // Close the login window
+      loginWindow.close();
 
-    // Create the main window
-    mainWindow = createMainWindow();
+      // Create the main window
+      mainWindow = createMainWindow();
+    } else {
+      // Display an error message or take appropriate action
+      console.log("Invalid password or master name.");
+    }
   });
 }
 

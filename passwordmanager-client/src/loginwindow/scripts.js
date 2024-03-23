@@ -11,8 +11,7 @@ function login() {
     const password = document.getElementById("master-password").value;
     const master = document.getElementById("master-name").value;
    // send the password to the main process
-    ipcRenderer.send("send-master-password", password);
-    ipcRenderer.send("send-master-name", master);
+    ipcRenderer.send("send-master-login", master, password);
   });
 }
 
