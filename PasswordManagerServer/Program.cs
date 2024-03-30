@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PasswordManagerServer.Data;
+using PasswordManagerServer.Helpers;
 using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 using System.Text;
@@ -93,6 +94,8 @@ namespace PasswordManagerServer
                     }
                 );
             }
+
+            Database.Create(app);
 
             _ = app.UseAuthentication();
             _ = app.UseAuthorization();

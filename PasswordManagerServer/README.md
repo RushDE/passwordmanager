@@ -1,16 +1,18 @@
 # Server Start
-Falls es noch nicht installiert ist `dotnet tool install --global dotnet-ef` ausführen.
-Zuerst den Ordner `databases`erstellen dann `dotnet ef database update` im Projektordner ausführen, um die Datenbank zu erstellen.
-Dann, das Projekt in VisualStudio einfach starten, dann wird der Swagger-UI gelauncht, zum API testen.
+Das Projekt in VisualStudio einfach starten, dann wird der Swagger-UI gelauncht, womit die API getestet werden kann.
 
 # API Testen
-Zuerst unter `/Register` einen account erstellen.
+**Im Swagger-UI:**
+Zuerst unter `/Register` einen Account erstellen.
 Statt den `string`s einfach was eigenes reinschreiben,
 Dann unter `/Login` die `string`s durch die gleichen daten wie bei `/Register` ersetzen.
 Nun den Token kopieren und oben bei `Authorize`hineinkopieren und absenden.
 Dann kannst du alle Endpunkte verwenden die ein Schloss daneben haben.
 
 Wenn du in die Datenbank schauen willst, kann ich dafür `DB Browser (SQLite)` dafür empfehlen.
+
+
+**Sonst auch einfach mein Modul für Node unter `passwordmanager-sdk`, mit dem zugehörigen Beispiel unter `passwordmanager-sdk-examples` verwenden.**
 
 # Database Scheme
 ## `Users`
