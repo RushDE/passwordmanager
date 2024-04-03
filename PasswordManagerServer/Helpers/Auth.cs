@@ -1,4 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using PasswordManagerServer.Data;
+using PasswordManagerServer.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -11,17 +13,18 @@ namespace PasswordManagerServer.Helpers
     public class Auth
     {
         /// <summary>
-        /// Creates a jwt bearer token from the user uuid.
+        /// Creates a jwt bearer token from the user.
         /// </summary>
         /// <param name="configuration"></param>
-        /// <param name="uuid"></param>
+        /// <param name="user"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static string CreateToken(IConfiguration configuration, string uuid)
+        public static string CreateToken(IConfiguration configuration, User user)
         {
             List<Claim> claims =
             [
-                new Claim(ClaimTypes.NameIdentifier, uuid)
+                new Claim(ClaimTypes.NameIdentifier, user.Uuid),
+                new Claim("tokenGeneration", user.TokenGeneration)
             ];
             string? jwtTokenKey = configuration.GetSection("Jwt:TokenKey")?.Value;
             if (string.IsNullOrWhiteSpace(jwtTokenKey))
@@ -44,13 +47,33 @@ namespace PasswordManagerServer.Helpers
         }
 
         /// <summary>
-        /// Gets the resquest uuid from the httpContextAccessor.
+        /// Gets the request uuid from the httpContextAccessor, if the token is valid..
         /// </summary>
         /// <param name="httpContextAccessor"></param>
+        /// <param name="dataContext"></param>
         /// <returns></returns>
-        public static string GetUuid(IHttpContextAccessor httpContextAccessor)
+        public static async Task<string?> ValidateAndGetUuid(IHttpContextAccessor httpContextAccessor, DataContext dataContext)
         {
-            string uuid = httpContextAccessor.HttpContext!.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            // Get the claims.
+            ClaimsPrincipal claim = httpContextAccessor.HttpContext!.User;
+            string uuid = claim.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            string tokenGeneration = claim.FindFirst("tokenGeneration")!.Value;
+
+            // Get the user from the db.
+            User? user = await dataContext.Users.FindAsync(uuid);
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Check if the token is valid.
+            string validTokenGeneration = user.TokenGeneration;
+            if (tokenGeneration != validTokenGeneration)
+            {
+                return null;
+            }
+
+            // Only return if the token is valid.
             return uuid;
         }
     }

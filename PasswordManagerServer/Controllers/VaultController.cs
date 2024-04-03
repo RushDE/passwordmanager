@@ -65,7 +65,11 @@ namespace PasswordManagerServer.Controllers
             {
                 return BadRequest(new MessageDto("The Uuid field has to be empty."));
             }
-            string requestUuid = Auth.GetUuid(_httpContextAccessor);
+            string? requestUuid = await Auth.ValidateAndGetUuid(_httpContextAccessor, _dataContext);
+            if (requestUuid == null)
+            {
+                return BadRequest(new MessageDto("Invalid token."));
+            }
             _ = await _dataContext.PasswordEntries.AddAsync(
                 new PasswordEntry()
                 {
@@ -110,9 +114,14 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> UpdatePasswordEntry(PasswordDto passwordDto)
         {
+            string? requestUuid = await Auth.ValidateAndGetUuid(_httpContextAccessor, _dataContext);
+            if (requestUuid == null)
+            {
+                return BadRequest(new MessageDto("Invalid token."));
+            }
             try
             {
-                Vault.UpdatePasswordEntry(_dataContext, Auth.GetUuid(_httpContextAccessor), passwordDto);
+                Vault.UpdatePasswordEntry(_dataContext, requestUuid, passwordDto);
             }
             catch (ArgumentException exception)
             {
@@ -147,7 +156,11 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> DeletePasswordEntry(string Uuid)
         {
-            string requestUuid = Auth.GetUuid(_httpContextAccessor);
+            string? requestUuid = await Auth.ValidateAndGetUuid(_httpContextAccessor, _dataContext);
+            if (requestUuid == null)
+            {
+                return BadRequest(new MessageDto("Invalid token."));
+            }
             if (!_dataContext.PasswordEntries.Any(
                 entry => entry.Uuid == Uuid && entry.UserUuid == requestUuid
                 )
@@ -198,9 +211,12 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(List<PasswordDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<PasswordDto>>> ListPasswordEntrys()
         {
-            return await Vault.ListPasswordEntrys(
+            string? requestUuid = await Auth.ValidateAndGetUuid(_httpContextAccessor, _dataContext);
+            return requestUuid == null
+                ? (ActionResult<List<PasswordDto>>)BadRequest(new MessageDto("Invalid token."))
+                : (ActionResult<List<PasswordDto>>)await Vault.ListPasswordEntrys(
                 _dataContext,
-                Auth.GetUuid(_httpContextAccessor)
+                requestUuid
             );
         }
     }

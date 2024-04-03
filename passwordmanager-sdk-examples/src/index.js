@@ -158,9 +158,25 @@ async function main() {
   try {
     await pma.userChangePassword(OLD_PASSWORD, NEW_PASSWORD);
     logSuccess(
-      "Changed the users password, and you can still access the passwords."
+      "Changed the users password, and you can no longer access the passwords."
     );
     logNeutral(await pma.vaultListPasswordEntrys());
+  } catch (error) {
+    if (error instanceof ApiError) {
+      logSuccess(error.message);
+    } else {
+      throw error;
+    }
+  }
+
+  logInfo("Logging the user out.");
+  pma.userLogout();
+  logSuccess("Logged the user out.");
+
+  logInfo("Logging the user back in.");
+  try {
+    await pma.userLogin(USERNAME, NEW_PASSWORD);
+    logSuccess("Logged the user back in.");
   } catch (error) {
     if (error instanceof ApiError) {
       logError(error.message);

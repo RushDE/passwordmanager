@@ -10,7 +10,7 @@ namespace PasswordManagerServer.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "PasswordEntries",
                 columns: table => new
                 {
@@ -23,30 +23,31 @@ namespace PasswordManagerServer.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PasswordEntries", x => x.Uuid);
+                    _ = table.PrimaryKey("PK_PasswordEntries", x => x.Uuid);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Uuid = table.Column<string>(type: "TEXT", nullable: false),
+                    TokenGeneration = table.Column<string>(type: "TEXT", nullable: false),
                     Username = table.Column<string>(type: "TEXT", nullable: false),
                     PasswordHash = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Uuid);
+                    _ = table.PrimaryKey("PK_Users", x => x.Uuid);
                 });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "PasswordEntries");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Users");
         }
     }

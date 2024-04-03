@@ -79,7 +79,6 @@ namespace PasswordManagerServer.Controllers
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.PrehashedPassword);
             _ = await _dataContext.Users.AddAsync(new User
             {
-                Uuid = Guid.NewGuid().ToString(),
                 Username = userDto.Username,
                 PasswordHash = passwordHash,
             });
@@ -124,7 +123,7 @@ namespace PasswordManagerServer.Controllers
             {
                 return BadRequest(new JwtBearerDto("Invalid password."));
             }
-            string token = Auth.CreateToken(_configuration, user.Uuid);
+            string token = Auth.CreateToken(_configuration, user);
             return Ok(new JwtBearerDto("Successfull login.") { Token = token });
         }
 
@@ -173,10 +172,10 @@ namespace PasswordManagerServer.Controllers
         public async Task<ActionResult<MessageDto>> ChangePassword(ChangePasswordDto changePasswordDto)
         {
             // Authenticate the user.
-            string requestUuid = Auth.GetUuid(_httpContextAccessor);
-            if (!_dataContext.Users.Any(user => user.Uuid == requestUuid))
+            string? requestUuid = await Auth.ValidateAndGetUuid(_httpContextAccessor, _dataContext);
+            if (requestUuid == null)
             {
-                return BadRequest(new MessageDto("User doesen't exist."));
+                return BadRequest(new MessageDto("Invalid token."));
             }
             User user = _dataContext.Users.First(user => user.Uuid == requestUuid);
             if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.PrehashedOldPassword, user.PasswordHash))
@@ -221,6 +220,9 @@ namespace PasswordManagerServer.Controllers
             // Set the new user password.
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.PrehashedNewPassword);
 
+            // Invalidate all tokens.
+            user.TokenGeneration = Guid.NewGuid().ToString();
+
             // After all checks passed, write the changes to the db.
             _ = await _dataContext.SaveChangesAsync();
             return Ok(new MessageDto("Changed password."));
@@ -253,10 +255,10 @@ namespace PasswordManagerServer.Controllers
         [ProducesResponseType(typeof(MessageDto), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<MessageDto>> DeleteUser(DeleteUserDto deleteUserDto)
         {
-            string requestUuid = Auth.GetUuid(_httpContextAccessor);
-            if (!_dataContext.Users.Any(user => user.Uuid == requestUuid))
+            string? requestUuid = await Auth.ValidateAndGetUuid(_httpContextAccessor, _dataContext);
+            if (requestUuid == null)
             {
-                return BadRequest(new MessageDto("User doesen't exist."));
+                return BadRequest(new MessageDto("Invalid token."));
             }
             User user = _dataContext.Users.First(user => user.Uuid == requestUuid);
             if (!BCrypt.Net.BCrypt.Verify(deleteUserDto.PrehashedPassword, user.PasswordHash))

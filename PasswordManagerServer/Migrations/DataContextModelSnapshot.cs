@@ -14,7 +14,7 @@ namespace PasswordManagerServer.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.4");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
 
             modelBuilder.Entity("PasswordManagerServer.Models.PasswordEntry", b =>
                 {
@@ -48,6 +48,10 @@ namespace PasswordManagerServer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenGeneration")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

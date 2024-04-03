@@ -11,7 +11,11 @@ namespace PasswordManagerServer.Models
         /// The unique user identifier.
         /// </summary>
         [Key]
-        public string Uuid { get; set; } = string.Empty;
+        public string Uuid { get; set; } = Guid.NewGuid().ToString();
+        /// <summary>
+        /// Only tokens with the current token generation should be valid.
+        /// </summary>
+        public string TokenGeneration { get; set; } = Guid.NewGuid().ToString();
         /// <summary>
         /// The account username.
         /// </summary>

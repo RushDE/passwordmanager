@@ -10,14 +10,14 @@ using PasswordManagerServer.Data;
 namespace PasswordManagerServer.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230404083246_Initial")]
+    [Migration("20240403132115_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "7.0.4");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.3");
 
             modelBuilder.Entity("PasswordManagerServer.Models.PasswordEntry", b =>
                 {
@@ -51,6 +51,10 @@ namespace PasswordManagerServer.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenGeneration")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
