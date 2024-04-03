@@ -213,6 +213,9 @@ export class PasswordManagerApi {
         headers: this.#getApiHeaders(),
       }
     );
+    if (!response.ok) {
+      throw new ApiError((await response.json()).message);
+    }
     const json = await response.json();
 
     // Decrypt all the password entrys.

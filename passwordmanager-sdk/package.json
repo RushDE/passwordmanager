@@ -1,6 +1,6 @@
 {
   "name": "passwordmanager-sdk",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A sdk to communicate more easily with my password manager server rest api.",
   "main": "./src/index.js",
   "author": "Maximilian Forster",
