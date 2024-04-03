@@ -11,31 +11,24 @@ namespace PasswordManagerServer.Controllers
     /// <summary>
     /// Endpoint to handle everything with the user account.
     /// </summary>
+    /// <remarks>
+    /// Injects everything.
+    /// </remarks>
+    /// <param name="dataContext"></param>
+    /// <param name="configuration"></param>
+    /// <param name="httpContextAccessor"></param>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class UserController : ControllerBase
+    public class UserController(
+        DataContext dataContext,
+        IConfiguration configuration,
+        IHttpContextAccessor httpContextAccessor
+        ) : ControllerBase
     {
-        private readonly DataContext _dataContext;
-        private readonly IConfiguration _configuration;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        /// <summary>
-        /// Injects everything.
-        /// </summary>
-        /// <param name="dataContext"></param>
-        /// <param name="configuration"></param>
-        /// <param name="httpContextAccessor"></param>
-        public UserController(
-            DataContext dataContext,
-            IConfiguration configuration,
-            IHttpContextAccessor httpContextAccessor
-        )
-        {
-            _dataContext = dataContext;
-            _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-        }
+        private readonly DataContext _dataContext = dataContext;
+        private readonly IConfiguration _configuration = configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         /// <summary>
         /// Creates a new account for a user.

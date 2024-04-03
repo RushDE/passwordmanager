@@ -5,22 +5,17 @@ namespace PasswordManagerServer.Dtos
     /// <summary>
     /// The (returnded) data transfer object for a login.
     /// </summary>
-    public class JwtBearerDto
+    /// <remarks>
+    /// For easyer object creation.
+    /// </remarks>
+    /// <param name="message"></param>
+    public class JwtBearerDto(string message)
     {
-        /// <summary>
-        /// For easyer object creation.
-        /// </summary>
-        /// <param name="message"></param>
-        public JwtBearerDto(string message)
-        {
-            Message = message;
-        }
-
         /// <summary>
         /// The succes or error message.
         /// </summary>
         [Required]
-        public string Message { get; set; } = string.Empty;
+        public string Message { get; set; } = message;
         /// <summary>
         /// The jwt bearer token.
         /// </summary>

@@ -6,16 +6,12 @@ namespace PasswordManagerServer.Data
     /// <summary>
     /// The data context for the database.
     /// </summary>
-    public class DataContext : DbContext
+    /// <remarks>
+    /// The constructor.
+    /// </remarks>
+    /// <param name="options"></param>
+    public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
     {
-        /// <summary>
-        /// The constructor.
-        /// </summary>
-        /// <param name="options"></param>
-        public DataContext(DbContextOptions<DataContext> options) : base(options)
-        {
-        }
-
         /// <summary>
         /// All the account data.
         /// </summary>

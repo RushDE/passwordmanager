@@ -10,27 +10,21 @@ namespace PasswordManagerServer.Controllers
     /// <summary>
     /// Endpoint to handle everything with the passwords.
     /// </summary>
+    /// <remarks>
+    /// Injects everything.
+    /// </remarks>
+    /// <param name="dataContext"></param>
+    /// <param name="httpContextAccessor"></param>
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class VaultController : ControllerBase
+    public class VaultController(
+        DataContext dataContext,
+        IHttpContextAccessor httpContextAccessor
+        ) : ControllerBase
     {
-        private readonly DataContext _dataContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        /// <summary>
-        /// Injects everything.
-        /// </summary>
-        /// <param name="dataContext"></param>
-        /// <param name="httpContextAccessor"></param>
-        public VaultController(
-            DataContext dataContext,
-            IHttpContextAccessor httpContextAccessor
-        )
-        {
-            _dataContext = dataContext;
-            _httpContextAccessor = httpContextAccessor;
-        }
+        private readonly DataContext _dataContext = dataContext;
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
         /// <summary>
         /// Creates a new password for a user, all information, ahould be encrypted client side.
